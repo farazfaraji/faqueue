@@ -41,6 +41,7 @@ testQueue();
 - <b>Job</b>
 <br>
 ```js
+
 const faQueue = require("faqueue");
 const job = require("faqueue/job");
 faQueue.connect("0.0.0.0",8586,3);
@@ -58,3 +59,6 @@ async function testJob(){
     await jobObject.addJob({data:"hello 2",status:false},{second:3,minute:21,hour:3,day:2});
 testJob();
 ```
+
+- <b>Examples on Github</b><br>
+Open this url: https://github.com/adonisrayan/faqueue-example.git
