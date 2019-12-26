@@ -18,41 +18,43 @@ example: when you want to send many requests to the any endpoint, but you do not
 <b>How to use:</b>
 -
 - <b>Queue</b><br>
-const faQueue = require("faqueue");<br>
+```js
+const faQueue = require("faqueue");
 const queue = require("faqueue/queue");
-<br>
-faQueue.connect("0.0.0.0",8586,3);// set your redis host and port and database (0-12) <br> 
-let queueObject =  new queue({name: "test", interval: 3000, cb: receivedQueue,max_try:2}); // interval as ms<br>
-<br>
-async function receivedQueue(data) {<br>
-    console.log(data.message);<br>
-    if(data.message.status===false)<br>
-        await queueObject.setAsFailed(data);<br>
-}<br>
-<br>
-async function testQueue() {<br>
-    await queueObject.addToQueue({data: "hello",status:false});<br>
-    await queueObject.addToQueue({data: "hello world",status:true});<br>
-    await queueObject.startFetch();<br>
-}<br><br>
-testQueue();<br>
+faQueue.connect("0.0.0.0",8586,3);// set your redis host and port and database (0-12)
+let queueObject =  new queue({name: "test", interval: 3000, cb: receivedQueue,max_try:2}); // interval as ms
+
+async function receivedQueue(data) {
+    console.log(data.message);
+    if(data.message.status===false)
+        await queueObject.setAsFailed(data);
+}
+
+async function testQueue() {
+    await queueObject.addToQueue({data: "hello",status:false});
+    await queueObject.addToQueue({data: "hello world",status:true});
+    await queueObject.startFetch();
+}
+testQueue();
+```
 
 - <b>Job</b>
 <br>
-const faQueue = require("faqueue");<br>
-const job = require("faqueue/job");<br>
-faQueue.connect("0.0.0.0",8586,3);<br>
-let jobObject =  new job({name: "test",max_try:2},jobReceived);<br>
-<br>
-async function jobReceived(data){<br>
-    console.log(data.message);<br>
-    if(data.message.status===false)<br>
-        await jobObject.setAsFailed(data);<br>
-}<br><br>
-async function testJob(){<br>
+```js
+const faQueue = require("faqueue");
+const job = require("faqueue/job");
+faQueue.connect("0.0.0.0",8586,3);
+let jobObject =  new job({name: "test",max_try:2},jobReceived);
+
+async function jobReceived(data){
+    console.log(data.message);
+    if(data.message.status===false)
+        await jobObject.setAsFailed(data);
+}
+async function testJob(){
 // available parameters is second,minute,hour,day. they are optional but you need to set one of them<br>
-    await jobObject.addJob({data:"hello",status:false},{second:3});<br>
-    await jobObject.addJob({data:"hello 1",status:true},{second:3,hour:4});<br>
-    await jobObject.addJob({data:"hello 2",status:false},{second:3,minute:21,hour:3,day:2});<br>
-}<br>
-testJob();<br>
+    await jobObject.addJob({data:"hello",status:false},{second:3});
+    await jobObject.addJob({data:"hello 1",status:true},{second:3,hour:4});
+    await jobObject.addJob({data:"hello 2",status:false},{second:3,minute:21,hour:3,day:2});
+testJob();
+```
