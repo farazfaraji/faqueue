@@ -36,12 +36,13 @@ async function testQueue() {
     await queueObject.startFetch();
 }
 testQueue();
+
 ```
 
 - <b>Job</b>
 <br>
-```js
 
+```js
 const faQueue = require("faqueue");
 const job = require("faqueue/job");
 faQueue.connect("0.0.0.0",8586,3);
@@ -53,11 +54,13 @@ async function jobReceived(data){
         await jobObject.setAsFailed(data);
 }
 async function testJob(){
-// available parameters is second,minute,hour,day. they are optional but you need to set one of them<br>
+// available parameters is second,minute,hour,day. they are optional but you need to set one of them
     await jobObject.addJob({data:"hello",status:false},{second:3});
     await jobObject.addJob({data:"hello 1",status:true},{second:3,hour:4});
     await jobObject.addJob({data:"hello 2",status:false},{second:3,minute:21,hour:3,day:2});
+    }
 testJob();
+
 ```
 
 - <b>Examples on Github</b><br>
