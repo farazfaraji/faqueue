@@ -51,6 +51,15 @@ class Redis {
         });
     }
 
+    async scan(scan){
+        const redisClient = this.redisClient;
+        return new Promise(function (resolve, reject) {
+            redisClient.scan(0,"MATCH",scan,function (e,result) {
+                resolve(result);
+            });
+        });
+    }
+
     async decr(key){
         const redisClient = this.redisClient;
         return new Promise(function (resolve, reject) {
