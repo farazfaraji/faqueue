@@ -6,6 +6,7 @@ const globalHelper = require("./helper/global.helper");
 class job{
     constructor(worker,cb){
         this.worker = worker;
+        this.worker.name = "faJob_" + this.worker.name;
         this.cb = cb;
         let parent = this;
         di.redisDb0.listenNotifications(function (message,channel) {
@@ -16,6 +17,7 @@ class job{
     {
         const key = message.replace("fjJobT","fjJobD");
         const value = await di.redisDb0.get(key);
+        await di.redisDb0.decr("faJob_Length_" + this.worker.name);
         await di.redisDb0.del(key);
         this.cb(JSON.parse(value));
     }
@@ -45,14 +47,34 @@ class job{
             return;
         data = JSON.stringify(data);
         const uuid = uuidv1();
-        await di.redisDb0.setAndExpire("fjJobT"+uuid,1,expire);
-        await di.redisDb0.set("fjJobD"+uuid,data);
+        await di.redisDb0.setAndExpire("fjJobT_" + this.worker.name + "_" +uuid,1,expire);
+        await di.redisDb0.set("fjJobD_" + this.worker.name + "_" + uuid,data);
+        await di.redisDb0.incr("faJob_Length_" + this.worker.name);
     }
     async setAsFailed(data){
         if(data.type!=="fj")
             throw new Error("type of object is not faJob type");
         data.retried += 1;
         await this._push(data,data.time);
+    }
+
+    async getLength(){
+        return await di.redisDb0.get("faJob_Length_" + this.worker.name);
+    }
+
+    async _findKeys(){
+        return await di.redisDb0.scan("*fjJob*" + this.worker.name + "*");
+    }
+
+    async removeJob(){
+        await di.redisDb0.del("faJob_Length_" + this.worker.name);
+        let keys = await this._findKeys();
+        while(keys[1].length!==0){
+            for(let i = 0;i<keys[1].length;i++)
+                await di.redisDb0.del(keys[1][i]);
+            keys = await this._findKeys();
+        }
+        return true;
     }
 }
 
