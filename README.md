@@ -6,6 +6,17 @@ faQueue can handle failed requests and put it back to the line<br><br>
 ATTENTION:<br>
 dont forget to run redis on your machine first
 
+<b>Versions:</b><br>
+- 
+- <b>1.0.4</b>:
+  - get length of job function added
+  - delete and clean job
+  - delete and clean queue
+- <b>1.0.3</b>:
+  - get length of queue function added
+- <b>1.0.2</b>:
+  - bug fix
+
 
 <b>Usages:</b><br>
 - 
@@ -77,6 +88,20 @@ Open this url: https://github.com/adonisrayan/faqueue-example.git
 - <b>setAsFailed(data: faQueue object,toEnd=true):</b> call this function to add object to the first or end of line again
 
 - <b>getLength():</b> get length of line
+
+- <b>removeQueue():</b> remove and clean queue
+
+<b> Job Functions </b>
+-
+- <b>constructor (worker:worker object):</b> {name: "name of job",max_try:"maximum try for failed times"},"Callback function" }.
+
+- <b>addJob (data:string | json):</b>  to add item to jobs.
+
+- <b>setAsFailed(data: faQueue object,toEnd=true):</b> call this function to add object to jobs list again.
+
+- <b>getLength():</b> get length of jobs object
+
+- <b>removeJob():</b> remove and clean jobs list
 
 
 

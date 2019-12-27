@@ -1,6 +1,6 @@
 {
   "name": "faqueue",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Persist Queue",
   "main": "index.js",
   "repository": {
@@ -15,7 +15,8 @@
     "queue",
     "job",
     "redis",
-    "cron"
+    "cron",
+    "line"
   ],
   "author": "Faraz Faraji",
   "license": "ISC",
