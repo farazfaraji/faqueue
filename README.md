@@ -65,3 +65,18 @@ testJob();
 
 - <b>Examples on Github</b><br>
 Open this url: https://github.com/adonisrayan/faqueue-example.git
+
+<b> Queue Functions </b>
+-
+- <b>constructor (worker:worker object):</b> {name: "name_of_queue", interval: "interval_time_in_ms", cb: "callback function",max_try:"maximum try for failed times" }.
+
+- <b>addToQueue (data:string | json):</b>  to add item to the end of the queue.
+
+- <b>startFetch():</b> start pop from line.
+
+- <b>setAsFailed(data: faQueue object,toEnd=true):</b> call this function to add object to the first or end of line again
+
+- <b>getLength():</b> get length of line
+
+
+

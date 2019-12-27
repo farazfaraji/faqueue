@@ -1,6 +1,6 @@
 {
   "name": "faqueue",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Persist Queue",
   "main": "index.js",
   "repository": {

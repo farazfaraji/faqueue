@@ -32,9 +32,8 @@ class queue{
             }
         }, worker.interval);
     }
-    async getInfo(){
-        const llen = await di.redisDb0.llen(this.worker.name);
-        di.eventEmitter.emit("onLen", llen);
+    async getLength(){
+        return await di.redisDb0.llen(this.worker.name);
     }
     async _push(data,l=true){
         if(data.retried===this.worker.max_try+1)
