@@ -53,6 +53,9 @@ class queue{
         else
             await this._push(data,false);
     }
+    async removeQueue(){
+        await di.redisDb0.del(this.worker.name)
+    }
 }
 
 module.exports = queue;
