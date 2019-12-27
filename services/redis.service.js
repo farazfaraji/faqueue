@@ -42,6 +42,24 @@ class Redis {
         });
     }
 
+    async incr(key){
+        const redisClient = this.redisClient;
+        return new Promise(function (resolve, reject) {
+            redisClient.incr(key,function (e,result) {
+                resolve(result);
+            });
+        });
+    }
+
+    async decr(key){
+        const redisClient = this.redisClient;
+        return new Promise(function (resolve, reject) {
+            redisClient.decr(key,function (e,result) {
+                resolve(result);
+            });
+        });
+    }
+
     async hmset(key,value){
         const redisClient = this.redisClient;
         return new Promise(function (resolve, reject) {
