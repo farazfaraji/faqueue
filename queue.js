@@ -1,12 +1,15 @@
 const uuidv1 = require('uuid/v1');
 
+const prefixJob = "faQueue_";
 const di = require("./di");
 const globalHelper = require("./helper/global.helper");
 
 class queue{
     constructor(worker){
         this.worker = worker;
-        this.worker.name = "faQueue_" + this.worker.name
+        this.worker.name = prefixJob + this.worker.name;
+        if(this.worker.waitFor===undefined)
+            this.worker.waitFor = [];
     }
     async addToQueue(data){
         try {
@@ -15,13 +18,17 @@ class queue{
             await this._push(fqData);
             return true;
         }catch (e) {
-            console.log(e);
             return false;
         }
     }
     async startFetch(){
         const worker = this.worker;
         setInterval(async function(){
+            for(let i = 0;i<worker.waitFor.length;i++){
+                const lengthOfQueue = await di.redisDb0.llen(prefixJob +worker.waitFor[i]);
+                if(lengthOfQueue!==0)
+                    return;
+            }
             let data = await di.redisDb0.rpop(worker.name);
             try{
                 if(data){

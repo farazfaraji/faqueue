@@ -8,6 +8,8 @@ dont forget to run redis on your machine first
 
 <b>Versions:</b><br>
 - 
+- <b>1.0.5</b>:
+  - queue's can wait for other queue's to finish.
 - <b>1.0.4</b>:
   - get length of job function added
   - delete and clean job
@@ -33,7 +35,7 @@ example: when you want to send many requests to the any endpoint, but you do not
 const faQueue = require("faqueue");
 const queue = require("faqueue/queue");
 faQueue.connect("0.0.0.0",8586,3);// set your redis host and port and database (0-12)
-let queueObject =  new queue({name: "test", interval: 3000, cb: receivedQueue,max_try:2}); // interval as ms
+let queueObject =  new queue({name: "test", interval: 3000, cb: receivedQueue,max_try:2,waitFor:["Other queue name"]}); // interval as ms
 
 async function receivedQueue(data) {
     console.log(data.message);
