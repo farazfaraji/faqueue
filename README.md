@@ -8,6 +8,10 @@ dont forget to run redis on your machine first
 
 <b>Versions:</b><br>
 - 
+- <b>1.0.7</b>:
+  - pause and resume queue popping feature added.
+- <b>1.0.6</b>:
+  - bug fixes
 - <b>1.0.5</b>:
   - queue's can wait for other queue's to finish.
 - <b>1.0.4</b>:
@@ -19,6 +23,8 @@ dont forget to run redis on your machine first
 - <b>1.0.2</b>:
   - bug fix
 
+<b>Support:</b><br>
+> Let's have a talk: faraz.faraji@gmail.com
 
 <b>Usages:</b><br>
 - 
@@ -47,6 +53,8 @@ async function testQueue() {
     await queueObject.addToQueue({data: "hello",status:false});
     await queueObject.addToQueue({data: "hello world",status:true});
     await queueObject.startFetch();
+    await queueObject.pause();
+    await queueObject.resume();
 }
 testQueue();
 

@@ -1,15 +1,18 @@
-const uuidv1 = require('uuid/v1');
+const queue_monitor = require("./monitor/queue.monitor");
 
 const prefixJob = "faQueue_";
 const di = require("./di");
 const globalHelper = require("./helper/global.helper");
 
-class queue{
+class queue extends queue_monitor{
+    _pause = false;
     constructor(worker){
+        super();
         this.worker = worker;
         this.worker.name = prefixJob + this.worker.name;
         if(this.worker.waitFor===undefined)
             this.worker.waitFor = [];
+        this.addToMonitor(this.worker);
     }
     async addToQueue(data){
         try {
@@ -23,7 +26,10 @@ class queue{
     }
     async startFetch(){
         const worker = this.worker;
+        const _pause = this._pause;
         setInterval(async function(){
+            if(!_pause)
+                return;
             for(let i = 0;i<worker.waitFor.length;i++){
                 const lengthOfQueue = await di.redisDb0.llen(prefixJob +worker.waitFor[i]);
                 if(lengthOfQueue!==0)
@@ -60,8 +66,18 @@ class queue{
         else
             await this._push(data,false);
     }
+    async getQueue(){
+        return this._getQueue(this.worker);
+    }
     async removeQueue(){
+        await this._removeQueue(this.worker);
         await di.redisDb0.del(this.worker.name)
+    }
+    async pause(){
+        this._pause = false;
+    }
+    async resume(){
+        this._pause = true;
     }
 }
 

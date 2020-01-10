@@ -1,6 +1,6 @@
 {
   "name": "faqueue",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Persist Queue",
   "main": "index.js",
   "repository": {
@@ -21,6 +21,7 @@
   "author": "Faraz Faraji",
   "license": "ISC",
   "dependencies": {
+    "lodash": "^4.17.15",
     "redis": "^2.8.0",
     "uuid": "^3.3.3"
   }
