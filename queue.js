@@ -1,32 +1,49 @@
-const queue_monitor = require("./monitor/queue.monitor");
+const neDb = require("./middleware/nedb");
 
 const prefixJob = "faQueue_";
 const di = require("./di");
 const globalHelper = require("./helper/global.helper");
 
-class queue extends queue_monitor{
-    _pause = false;
+
+
+class queue{
+    #pause = true;
+    #initialized = false;
     constructor(worker){
-        super();
         this.worker = worker;
         this.worker.name = prefixJob + this.worker.name;
-        if(this.worker.waitFor===undefined)
-            this.worker.waitFor = [];
-        this.addToMonitor(this.worker);
+    }
+    async init(){
+        let worker = this.worker;
+        worker = await initializeVariables(worker);
+        const me = await neDb.getWorker(worker.name);
+        if(me!==null){
+            if(!worker.override)
+                throw new Error("faQueue: " + worker.name + " is exist.");
+            if(!worker.keep_data)
+                await di.redisDb0.del(worker.name);
+            await neDb.addToDb(worker,worker.update);
+        }
+        else
+            await neDb.addToDb(worker);
+        this.#initialized = true;
+        this.#pause = false;
+        this.worker = worker;
     }
     async addToQueue(data){
         try {
-            globalHelper.checkConnection();
+            await this.__checkSystem();
             const fqData = {message:data,type:"fq",retried:0};
-            await this._push(fqData);
+            await push(fqData);
             return true;
         }catch (e) {
-            return false;
+            throw new Error(e);
         }
     }
     async startFetch(){
+        await this.__checkSystem();
         const worker = this.worker;
-        const _pause = this._pause;
+        const _pause = this.#pause;
         setInterval(async function(){
             if(!_pause)
                 return;
@@ -42,43 +59,80 @@ class queue extends queue_monitor{
                     worker.cb(data);
                 }
             }catch (e) {
+                throw new Error(e);
             }
         }, worker.interval);
     }
     async getLength(){
+        await this.__checkSystem();
         return await di.redisDb0.llen(this.worker.name);
     }
-    async _push(data,l=true){
-        if(data.retried===this.worker.max_try+1)
-            return;
-        data = JSON.stringify(data);
-        if(l)
-            await di.redisDb0.lpush(this.worker.name,data);
-        else
-            await di.redisDb0.rpush(this.worker.name,data);
-    }
     async setAsFailed(data,toEnd=true){
+        await this.__checkSystem();
         if(data.type!=="fq")
             throw new Error("type of object is not faQueue type");
         data.retried += 1;
         if(toEnd)
-            await this._push(data);
+            await push(data);
         else
-            await this._push(data,false);
+            await push(data,false);
     }
     async getQueue(){
-        return this._getQueue(this.worker);
+        await this.__checkSystem();
+        let worker =  await neDb.getWorker(this.worker.name);
+        delete worker["_id"];
+        return worker;
     }
     async removeQueue(){
-        await this._removeQueue(this.worker);
+        await this.__checkSystem();
+        await neDb.removeWorker(this.worker.name);
         await di.redisDb0.del(this.worker.name)
     }
     async pause(){
-        this._pause = false;
+        this.#pause = false;
     }
     async resume(){
-        this._pause = true;
+        this.#pause = true;
     }
+
+    async __checkSystem(){
+        if(!this.#initialized)
+            throw new Error("faQueue: queue doesn't initialized yet!");
+        globalHelper.checkConnection();
+    }
+}
+async function push(data,worker,l=true){
+    if(data.retried===worker.max_try+1)
+        return;
+    data = JSON.stringify(data);
+    if(l)
+        await di.redisDb0.lpush(worker.name,data);
+    else
+        await di.redisDb0.rpush(worker.name,data);
+}
+async function initializeVariables(worker){
+
+    if(worker.name ==="" || worker.name===undefined || worker.name === null)
+        throw new Error("FaQueue: worker name can not be empty. queue has been stopped!");
+
+    if(worker.waitFor===undefined)
+        worker.waitFor = [];
+
+    if(worker.interval===undefined)
+        tworker.interval = 1000;
+
+    if(worker.max_try===undefined)
+        worker.max_try = 3;
+
+    if(worker.override===undefined)
+        worker.override = false;
+
+    if(worker.keep_data===undefined)
+        worker.keep_data = true;
+
+    if(worker.update===undefined)
+        worker.update = true;
+    return worker;
 }
 
 module.exports = queue;
