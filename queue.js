@@ -5,9 +5,10 @@ const di = require("./di");
 const globalHelper = require("./helper/global.helper");
 
 class queue{
-    _pause = true;
-    _initialized = false;
+
     constructor(worker){
+        this._pause = true;
+        this._initialized = false;
         this.worker = worker;
         this.worker.name = prefixJob + this.worker.name;
     }
@@ -25,7 +26,7 @@ class queue{
         else
             await neDb.addToDb(worker);
         this._initialized = true;
-        this._pause = false;
+        this._pause = true;
         this.worker = worker;
     }
     async addToQueue(data){
