@@ -4,11 +4,9 @@ const prefixJob = "faQueue_";
 const di = require("./di");
 const globalHelper = require("./helper/global.helper");
 
-
-
 class queue{
-    #pause = true;
-    #initialized = false;
+    _pause = true;
+    _initialized = false;
     constructor(worker){
         this.worker = worker;
         this.worker.name = prefixJob + this.worker.name;
@@ -26,15 +24,15 @@ class queue{
         }
         else
             await neDb.addToDb(worker);
-        this.#initialized = true;
-        this.#pause = false;
+        this._initialized = true;
+        this._pause = false;
         this.worker = worker;
     }
     async addToQueue(data){
         try {
             await this.__checkSystem();
             const fqData = {message:data,type:"fq",retried:0};
-            await push(fqData);
+            await push(fqData,this.worker);
             return true;
         }catch (e) {
             throw new Error(e);
@@ -43,7 +41,7 @@ class queue{
     async startFetch(){
         await this.__checkSystem();
         const worker = this.worker;
-        const _pause = this.#pause;
+        const _pause = this._pause;
         setInterval(async function(){
             if(!_pause)
                 return;
@@ -73,9 +71,9 @@ class queue{
             throw new Error("type of object is not faQueue type");
         data.retried += 1;
         if(toEnd)
-            await push(data);
+            await push(data,this.worker);
         else
-            await push(data,false);
+            await push(data,this.worker,false);
     }
     async getQueue(){
         await this.__checkSystem();
@@ -89,14 +87,14 @@ class queue{
         await di.redisDb0.del(this.worker.name)
     }
     async pause(){
-        this.#pause = false;
+        this._pause = false;
     }
     async resume(){
-        this.#pause = true;
+        this._pause = true;
     }
 
     async __checkSystem(){
-        if(!this.#initialized)
+        if(!this._initialized)
             throw new Error("faQueue: queue doesn't initialized yet!");
         globalHelper.checkConnection();
     }
@@ -119,7 +117,7 @@ async function initializeVariables(worker){
         worker.waitFor = [];
 
     if(worker.interval===undefined)
-        tworker.interval = 1000;
+        worker.interval = 1000;
 
     if(worker.max_try===undefined)
         worker.max_try = 3;

@@ -2,12 +2,15 @@ const uuidv1 = require('uuid/v1');
 
 const di = require("./di");
 const globalHelper = require("./helper/global.helper");
+const prefixJob = "faJob_";
 
 class job{
     constructor(worker,cb){
         this.worker = worker;
-        this.worker.name = "faJob_" + this.worker.name;
+        this.worker.name = prefixJob + this.worker.name;
         this.cb = cb;
+        if(this.worker.waitFor===undefined)
+            this.worker.waitFor = [];
         let parent = this;
         di.redisDb0.listenNotifications(function (message,channel) {
             parent.expiredKey(message,channel)
@@ -17,8 +20,15 @@ class job{
     {
         const key = message.replace("fjJobT","fjJobD");
         const value = await di.redisDb0.get(key);
-        await di.redisDb0.decr("faJob_Length_" + this.worker.name);
+        await di.redisDb0.decr(prefixJob+"Length_" + this.worker.name);
         await di.redisDb0.del(key);
+        // for(let i = 0;i<this.worker.waitFor.length;i++){
+        //     const lenghtOfQueue = await di.redisDb0.get(prefixJob +"Length_" + this.worker.waitFor[i])
+        //     if(lenghtOfQueue!==0)
+        //     {
+        //         this._push()
+        //     }
+        // }
         this.cb(JSON.parse(value));
     }
     async addJob(data,time){
@@ -49,7 +59,7 @@ class job{
         const uuid = uuidv1();
         await di.redisDb0.setAndExpire("fjJobT_" + this.worker.name + "_" +uuid,1,expire);
         await di.redisDb0.set("fjJobD_" + this.worker.name + "_" + uuid,data);
-        await di.redisDb0.incr("faJob_Length_" + this.worker.name);
+        await di.redisDb0.incr(prefixJob + "Length_" + this.worker.name);
     }
     async setAsFailed(data){
         if(data.type!=="fj")
@@ -59,7 +69,7 @@ class job{
     }
 
     async getLength(){
-        return await di.redisDb0.get("faJob_Length_" + this.worker.name);
+        return await di.redisDb0.get(prefixJob + "Length_" + this.worker.name);
     }
 
     async _findKeys(){
@@ -67,7 +77,7 @@ class job{
     }
 
     async removeJob(){
-        await di.redisDb0.del("faJob_Length_" + this.worker.name);
+        await di.redisDb0.del(prefixJob + "Length_" + this.worker.name);
         let keys = await this._findKeys();
         while(keys[1].length!==0){
             for(let i = 0;i<keys[1].length;i++)
